@@ -30,7 +30,7 @@ app.use( express.json() );
 
 // Routes
 app.use( '/api/categories', categoriesRoutes );
-app.use( '/api/products', productsRoutes );S
+app.use( '/api/products', productsRoutes );
 app.use( '/api/banners', bannersRoutes );
 app.use( '/api/orders', ordersRoutes );
 app.use( '/api/resupplies', resuppliesRoutes );
