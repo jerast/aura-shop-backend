@@ -10,12 +10,27 @@ import usersRoutes from './routes/users.routes.js';
 const app = express();
 
 // Middlewares
-app.use( cors() );
+const allowedOrigins = [
+  "http://aura-belleza.shop",
+  "http://localhost:5173"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
+
 app.use( express.json() );
 
 // Routes
 app.use( '/api/categories', categoriesRoutes );
-app.use( '/api/products', productsRoutes );
+app.use( '/api/products', productsRoutes );S
 app.use( '/api/banners', bannersRoutes );
 app.use( '/api/orders', ordersRoutes );
 app.use( '/api/resupplies', resuppliesRoutes );
