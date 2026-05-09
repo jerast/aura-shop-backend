@@ -11,8 +11,8 @@ const app = express();
 
 // Middlewares
 const allowedOrigins = [
-  "http://aura-belleza.shop",
-  "http://admin.aura-belleza.shop",
+  "https://aura-belleza.shop",
+  "https://admin.aura-belleza.shop",
   "http://localhost:5173",
   "http://localhost:5174",
 ];
