@@ -35,7 +35,13 @@ export const createOrder = async (request, response) => {
 		// 	};
 		// };		
 
-		const finalOrder = new Order({ ...order, state: /* verifyStock ? */ 'Pending'/*  : 'Active'  */});
+		const totalOrders = await Order.countDocuments();
+
+		const finalOrder = new Order({ 
+			...order,
+			id: `AUR-${String(totalOrders).padStart(4, '0')}`,
+			status: 'pending'
+		});
 		await finalOrder.save( async function ( error, result ) {
 			result.list.forEach( async item => {
 				if (error) return responseError( response, error );
@@ -48,6 +54,34 @@ export const createOrder = async (request, response) => {
 		return response.json({
 			ok: true,
 			order: finalOrder,
+		});
+	} catch (error) {
+		responseError(response, error);
+	}
+};
+
+export const updateOrderStatus = async (request, response) => {
+	try {
+		const { id } = request.params;
+		const { newStatus } = request.body;
+
+		const orderExists = await Order.findById(id);
+		if (!orderExists) {
+			return response.status(404).json({
+				ok: false,
+				message: 'Order not found',
+			});
+		}
+
+		const updatedOrder = await Order.findByIdAndUpdate(
+			id,
+			{ status: newStatus },
+			{ new: true }
+		);
+
+		return response.json({
+			ok: true,
+			order: updatedOrder,
 		});
 	} catch (error) {
 		responseError(response, error);

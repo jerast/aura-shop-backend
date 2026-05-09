@@ -1,6 +1,10 @@
 import { Schema, model } from 'mongoose';
 
 const orderSquema = Schema({
+	id: {
+		type: String,
+		required: true,
+	},
 	user: {
 		type: Schema.Types.ObjectId,
 		ref: 'User',
@@ -39,15 +43,15 @@ const orderSquema = Schema({
 			required: true,
 		},
 	}],
-	state: {
-		type: String, // Active, Pending, delivered, cancelled
+	status: {
+		type: String, // active, pending, delivered, cancelled
 		required: true,
 	},
 });
 
 orderSquema.method('toJSON', function () {
-	const { __v, _id, ...object } = this.toObject();
-	return { id: _id, ...object };
+	const { __v, ...object } = this.toObject();
+	return { ...object };
 });
 
 export const Order = model('Order', orderSquema); 
