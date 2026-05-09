@@ -49,6 +49,7 @@ export const loginUser = async (request, response) => {
 
 	try {
 		const user = await User.findOne({ email });
+		
 		if ( !user ) return response.status(400).json({
 			ok: false,
 			message: 'User / Password are not correct.',
@@ -60,7 +61,7 @@ export const loginUser = async (request, response) => {
 			message: 'User / Password are not correct.',
 		});
 
-		const token = await generateJWT( user.id, user.name, user.surname, user.email, user.phone, user.role );
+		const token = await generateJWT( user );
 
 		return response.json({
 			ok: true,
@@ -95,7 +96,7 @@ export const updateUser = async (request, response) => {
 
 		return response.json({
 			ok: true,
-			user: updatedUser,
+			// user: updatedUser,
 		});
 	} catch (error) { responseError(response, error) }
 };
@@ -150,20 +151,21 @@ export const deleteUser = async (request, response) => {
 
 export const revalidateJWT = async (request, response) => {
 	try {
-		const { id, name, surname, email, phone, role } = request.session;
+		const { id } = request.session;
 
-		const token = await generateJWT( id, name, surname, email, phone, role );
+		const user = await User.findById(id);
+		if (!user) {
+			return response.status(404).json({
+				ok: false,
+				message: 'User not found.',
+			});
+		}
+
+		const token = await generateJWT(user);
 
 		return response.json({
 			ok: true,
-			user: {
-				id,
-				name,
-				surname,
-				email,
-				phone,
-				role,
-			},
+			user,
 			token,
 		});
 	} catch (error) {

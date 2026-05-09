@@ -1,14 +1,6 @@
 import { Schema, model } from 'mongoose';
 
 const userSquema = Schema({
-	name: {
-		type: String,
-		required: true,
-	},
-	surname: {
-		type: String,
-		required: true,
-	},
 	email: {
 		type: String,
 		required: true,
@@ -18,21 +10,42 @@ const userSquema = Schema({
 		type: String,
 		required: true,
 	},
+	name: {
+		type: String,
+		default: undefined
+	},
+	surname: {
+		type: String,
+		default: undefined
+	},
+	dniType: {
+		type: String,
+		default: undefined
+	},
+	dniNumber: {
+		type: Number,
+		default: undefined
+	},
 	phone: {
 		type: Number,
-		unique: true,
+		default: undefined
+	},
+	gender: {
+		type: String,
+		default: undefined
+	},
+	birthday: {
+		type: Date,
+		default: undefined
 	},
 	role: {
 		type: String,
-		required: true,
 		default: 'customer',
 	},
 	state: {
 		type: Boolean,
-		required: true,
 		default: true,
 	},
-	
 });
 
 userSquema.method('toJSON', function () {
