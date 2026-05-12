@@ -13,9 +13,7 @@ const app = express();
 const allowedOrigins = [
   "https://aura-belleza.shop",
   "https://www.aura-belleza.shop",
-  "https://admin.aura-belleza.shop",
-  "http://localhost:5173",
-  "http://localhost:5174",
+  "https://admin.aura-belleza.shop"
 ];
 
 app.use(cors({

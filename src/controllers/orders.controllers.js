@@ -33,22 +33,13 @@ export const createOrder = async (request, response) => {
 		// 		verifyStock = true;
 		// 		break;
 		// 	};
-		// };		
+		// };
 
 		const totalOrders = await Order.countDocuments();
-
 		const finalOrder = new Order({ 
 			...order,
 			id: `AUR-${String(totalOrders).padStart(4, '0')}`,
 			status: 'pending'
-		});
-		await finalOrder.save( async function ( error, result ) {
-			result.list.forEach( async item => {
-				if (error) return responseError( response, error );
-			
-				const { stock } = await Product.findById( item.product );
-				await Product.findByIdAndUpdate( item.product, { stock: stock - item.count });
-			});
 		});
 
 		return response.json({
@@ -60,10 +51,71 @@ export const createOrder = async (request, response) => {
 	}
 };
 
-export const updateOrderStatus = async (request, response) => {
+export const confirmOrder = async (request, response) => {
 	try {
 		const { id } = request.params;
-		const { newStatus } = request.body;
+
+		if (!orderExists) {
+			return response.status(404).json({
+				ok: false,
+				message: 'Order not found',
+			});
+		}
+
+		const updatedOrder = await Order.findByIdAndUpdate(
+			id,
+			{ status: 'confirmed' },
+			{ new: true }
+		);
+
+		await finalOrder.save( async function ( error, result ) {
+			result.list.forEach( async item => {
+				if (error) return responseError( response, error );
+			
+				const { stock } = await Product.findById( item.product );
+				await Product.findByIdAndUpdate( item.product, { stock: stock - item.count });
+			});
+		});
+
+		return response.json({
+			ok: true,
+			order: updatedOrder,
+		});
+	} catch (error) {
+		responseError(response, error);
+	}
+};
+
+export const deliverOrder = async (request, response) => {
+	try {
+		const { id } = request.params;
+
+		const orderExists = await Order.findById(id);
+		if (!orderExists) {
+			return response.status(404).json({
+				ok: false,
+				message: 'Order not found',
+			});
+		}
+		
+		const updatedOrder = await Order.findByIdAndUpdate(
+			id,
+			{ status: 'delivered' },
+			{ new: true }
+		);
+
+		return response.json({
+			ok: true,
+			order: updatedOrder,
+		});
+	} catch (error) {
+		responseError(response, error);
+	}
+};
+
+export const cancelOrder = async (request, response) => {
+	try {
+		const { id } = request.params;
 
 		const orderExists = await Order.findById(id);
 		if (!orderExists) {
@@ -75,7 +127,7 @@ export const updateOrderStatus = async (request, response) => {
 
 		const updatedOrder = await Order.findByIdAndUpdate(
 			id,
-			{ status: newStatus },
+			{ status: 'canceled' },
 			{ new: true }
 		);
 
