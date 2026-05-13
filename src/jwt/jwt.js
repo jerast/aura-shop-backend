@@ -12,7 +12,7 @@ export const generateJWT = ({
 	gender,
 	birthday,
 	role,
-	state,
+	status,
  }) => {
 	return new Promise((resolve, reject) => {
 		const payload = { 
@@ -26,7 +26,7 @@ export const generateJWT = ({
 			gender,
 			birthday,
 			role,
-			state,
+			status,
 		};
 		const options = { expiresIn: '2h' };
 
