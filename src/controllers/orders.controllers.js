@@ -159,7 +159,7 @@ export const cancelOrder = async (request, response) => {
 			throw new Error(`Cannot cancel order with status: ${order.status}`);
 		}
 
-		const [updatedOrder] = await Order.findByIdAndUpdate(
+		const updatedOrder = await Order.findByIdAndUpdate(
 			id,
 			{ status: 'canceled' },
 			{ new: true }
