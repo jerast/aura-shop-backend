@@ -42,7 +42,7 @@ const userSquema = Schema({
 		type: String,
 		default: 'customer',
 	},
-	state: {
+	status: {
 		type: Boolean,
 		default: true,
 	},

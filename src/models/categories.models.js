@@ -15,7 +15,7 @@ const categorySquema = Schema({
 	type: {
 		type: String, // Makeup, Accesories
 	},
-	state: {
+	status: {
 		type: Boolean,
 		default: true,
 	},

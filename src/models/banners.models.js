@@ -10,7 +10,7 @@ const bannerSquema = Schema({
 	action: {
 		type: String,
 	},
-	state: {
+	status: {
 		type: Boolean,
 		default: true,
 	},

@@ -38,13 +38,17 @@ const productSquema = Schema({
 	image: {
 		type: String,
 	},
-	state: {
-		type: Boolean,
-		default: true,
+	sold_units: {
+		type: Number,
+		default: 0,
 	},
 	stock: {
 		type: Number,
 		default: 0,
+	},
+	status: {
+		type: Boolean,
+		default: true,
 	},
 });
 

@@ -30,7 +30,6 @@ export const createOrder = async (request, response) => {
 
 		for (const item of list) {
 			const product = await Product.findById(item.product).session(session);
-			
 			if (!product) {
 				throw new Error(`Product not found: ${item.product}`);
 			}
