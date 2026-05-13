@@ -12,12 +12,12 @@ export const validateJWT = (request, response, next) => {
    }
 
    try {
-      const { id, name, surname, email, phone, role } = jwt.verify(
+      const { id, email, name, surname, dniType, dniNumber, phone, gender, birthday, role, status } = jwt.verify(
          token, 
          SECRET_JWT_SEED
       );
 
-      request.session = { id, name, surname, email, phone, role };
+      request.session = { id, name, surname, email, phone, role, dniType, dniNumber, gender, birthday, status };
    } 
    catch (error) { 
       return response.status(401).json({

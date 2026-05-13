@@ -70,8 +70,12 @@ export const loginUser = async (request, response) => {
 				name: user.name,
 				surname: user.surname,
 				email: user.email,
+				dniType: user.dniType,
+				dniNumber: user.dniNumber,
 				phone: user.phone,
 				role: user.role,
+				gender: user.gender,
+				birthday: user.birthday,
 			},
 			token,
 		});
@@ -165,7 +169,19 @@ export const revalidateJWT = async (request, response) => {
 
 		return response.json({
 			ok: true,
-			user,
+			user: {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				surname: user.surname,
+				dniType: user.dniType,
+				dniNumber: user.dniNumber,
+				phone: user.phone,
+				gender: user.gender,
+				birthday: user.birthday,
+				role: user.role,
+				status: user.status
+			},
 			token,
 		});
 	} catch (error) {
