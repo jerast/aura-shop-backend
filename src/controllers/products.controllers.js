@@ -1,5 +1,8 @@
+import mongoose from 'mongoose';
 import { responseError } from '../middlewares/responseError.js';
 import Product from '../models/products.models.js';
+import Category from '../models/categories.models.js';
+import { uploadImage, deleteImage } from '../cloudinary.js';
 
 export const getProducts = async (request, response) => {
 	try {
@@ -38,48 +41,120 @@ export const getProduct = async (request, response) => {
 };
 
 export const createProduct = async (request, response) => {
+	const session = await mongoose.startSession();
+	session.startTransaction();
+
 	try {
-		const product = new Product({ ...request.body });
-		await product.save();
+		const { name, reference, bar_code, description, category, buy, retail, wholesale, stock } = request.body;
+		console.log(request.body);
+		
+		const image = request.files?.image;
+
+		let imagePublicId = null;
+		if (image) {
+			const result = await uploadImage(image.tempFilePath);
+			imagePublicId = result.public_id.split('/').pop();
+		}
+
+		const productData = {
+			name,
+			reference,
+			bar_code,
+			description,
+			category,
+			prices: {
+				retail: retail,
+				wholesale: wholesale,
+			},
+			stock,
+			image: imagePublicId,
+		};
+
+		const [createdProduct] = await Product.create([productData], { session });
+
+		const finalProduct = await Product.findById(createdProduct._id)
+			.populate('category', 'name')
+			.session(session);
+
+		await session.commitTransaction();
+		session.endSession();
+
+		const productResponse = {
+			...finalProduct.toObject(),
+			category: finalProduct.category?.name || null
+		};
 
 		return response.json({
 			ok: true,
-			product,
+			product: productResponse,
 		});
 	} catch (error) {
+		await session.abortTransaction();
+		session.endSession();
 		responseError(response, error);
 	}
 };
 
 export const updateProduct = async (request, response) => {
+	const session = await mongoose.startSession();
+	session.startTransaction();
+
 	try {
 		const { id } = request.params;
+		const image = request.files?.image;
 
-		const product = await Product.findById(id);
+		const product = await Product.findById(id).session(session);
 
 		if (!product) {
-			return response.status(404).json({
-				ok: false,
-				message: `Product not found`,
-			});
+			throw new Error('Product not found');
 		}
 
-		const updatedProduct = await Product.findByIdAndUpdate(
+		let { category, retail, wholesale, ...updateData } = request.body;
+		if (category) {
+			const categoryExists = await Category.findById(category).session(session);
+			if (!categoryExists) {
+				throw new Error('Category not found');
+			}
+		}
+
+		if (image) {
+			if (product.image) {
+				await deleteImage(`Aura-B/products/${product.image}`);
+			}
+			const result = await uploadImage(image.tempFilePath);
+			updateData.image = result.public_id.split('/').pop();
+		}
+
+		await Product.findByIdAndUpdate(
 			id,
-			{ ...request.body },
+			updateData,
 			{ new: true }
-		);
+		).session(session);
+
+		const finalProduct = await Product.findById(id)
+			.populate('category', 'name')
+			.session(session);
+
+		await session.commitTransaction();
+		session.endSession();
+
+		const productResponse = {
+			...finalProduct.toObject(),
+			category: finalProduct.category?.name || null
+		};
 
 		return response.json({
 			ok: true,
-			product: updatedProduct,
+			product: productResponse,
 		});
 	} catch (error) {
+		await session.abortTransaction();
+		session.endSession();
 		responseError(response, error);
 	}
 };
 
-export const toogleProduct = async (request, response) => {
+export const toggleProduct = async (request, response) => {
 	try {
 		const { id } = request.params;
 
@@ -94,7 +169,7 @@ export const toogleProduct = async (request, response) => {
 
 		const updatedProduct = await Product.findByIdAndUpdate(
 			id,
-			{ state: !product._doc.state },
+			{ status: !product._doc.status },
 			{ new: true }
 		);
 
@@ -108,25 +183,39 @@ export const toogleProduct = async (request, response) => {
 };
 
 export const deleteProduct = async (request, response) => {
+	const session = await mongoose.startSession();
+	session.startTransaction();
+
 	try {
 		const { id } = request.params;
 
-		const product = await Product.findById(id);
+		const product = await Product.findById(id).session(session);
 
 		if (!product) {
-			return response.status(404).json({
-				ok: false,
-				message: `Product not found`,
-			});
+			throw new Error('Product not found');
 		}
 
-		await Product.findByIdAndDelete(id);
+		if (product.image) {
+			await deleteImage(`Aura-B/products/${product.image}`);
+		}
+
+		const [updatedProduct] = await Product.findByIdAndUpdate(
+			id,
+			{ status: false },
+			{ new: true }
+		).session(session);
+
+		await session.commitTransaction();
+		session.endSession();
 
 		return response.json({
 			ok: true,
-			message: 'Product deleted',
+			message: 'Product hidden',
+			product: updatedProduct,
 		});
 	} catch (error) {
+		await session.abortTransaction();
+		session.endSession();
 		responseError(response, error);
 	}
 };

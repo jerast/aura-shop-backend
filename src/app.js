@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import fileUpload from 'express-fileupload';
 import categoriesRoutes from './routes/categories.routes.js';
 import productsRoutes from './routes/products.routes.js';
 import bannersRoutes from './routes/banners.routes.js';
@@ -27,6 +28,11 @@ app.use(cors({
     }
   },
   credentials: true
+}));
+
+app.use(fileUpload({
+	useTempFiles: true,
+	tempFileDir: '/tmp/',
 }));
 
 app.use( express.json() );

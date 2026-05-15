@@ -24,15 +24,15 @@ const productSquema = Schema({
 	prices: {
 		buy: {
 			type: Number,
-			required: true,
+			default: 0
 		},
 		retail: {
 			type: Number,
-			required: true,
+			default: 0
 		},
 		wholesale: {
 			type: Number,
-			required: true,
+			default: 0
 		},
 	},
 	image: {
