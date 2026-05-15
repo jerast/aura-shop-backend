@@ -72,21 +72,12 @@ export const createProduct = async (request, response) => {
 
 		const [createdProduct] = await Product.create([productData], { session });
 
-		const finalProduct = await Product.findById(createdProduct._id)
-			.populate('category', 'name')
-			.session(session);
-
 		await session.commitTransaction();
 		session.endSession();
 
-		const productResponse = {
-			...finalProduct.toObject(),
-			category: finalProduct.category?.name || null
-		};
-
 		return response.json({
 			ok: true,
-			product: productResponse,
+			product: createdProduct,
 		});
 	} catch (error) {
 		await session.abortTransaction();
@@ -102,20 +93,9 @@ export const updateProduct = async (request, response) => {
 	try {
 		const { id } = request.params;
 		const image = request.files?.image;
+		let { retail, wholesale, ...updateData } = request.body;
 
 		const product = await Product.findById(id).session(session);
-
-		if (!product) {
-			throw new Error('Product not found');
-		}
-
-		let { category, retail, wholesale, ...updateData } = request.body;
-		if (category) {
-			const categoryExists = await Category.findById(category).session(session);
-			if (!categoryExists) {
-				throw new Error('Category not found');
-			}
-		}
 
 		if (image) {
 			if (product.image) {
@@ -127,25 +107,27 @@ export const updateProduct = async (request, response) => {
 
 		await Product.findByIdAndUpdate(
 			id,
-			updateData,
+			{
+				...updateData,
+				prices: {
+					retail,
+					wholesale,
+				},
+			},
 			{ new: true }
 		).session(session);
 
 		const finalProduct = await Product.findById(id)
-			.populate('category', 'name')
+			.populate({ path: 'category', select: 'name', transform: (doc, id) => doc.name })
 			.session(session);
+			
 
 		await session.commitTransaction();
 		session.endSession();
 
-		const productResponse = {
-			...finalProduct.toObject(),
-			category: finalProduct.category?.name || null
-		};
-
 		return response.json({
 			ok: true,
-			product: productResponse,
+			product: finalProduct,
 		});
 	} catch (error) {
 		await session.abortTransaction();
