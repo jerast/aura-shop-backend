@@ -69,9 +69,7 @@ export const confirmOrder = async (request, response) => {
 				throw new Error('Order not found');
 			}
 
-			if (order.status !== 'pending') {
-				throw new Error(`Cannot confirm order with status: ${order.status}`);
-			}
+// Sin restricciones de estado
 
 			for (const item of order.list) {
 				const product = await Product.findById(item.product).session(session);
@@ -83,7 +81,7 @@ export const confirmOrder = async (request, response) => {
 
 			const updatedOrder = await Order.findByIdAndUpdate(
 				id,
-				{ status: 'confirmed' },
+				{ status: 'ready' },
 				{ new: true }
 			).session(session);
 
@@ -118,9 +116,7 @@ export const deliverOrder = async (request, response) => {
 			});
 		}
 
-		if (order.status !== 'confirmed') {
-			throw new Error(`Cannot deliver order with status: ${order.status}`);
-		}
+		// Sin restricciones de estado
 
 		const updatedOrder = await Order.findByIdAndUpdate(
 			id,
@@ -149,13 +145,43 @@ export const cancelOrder = async (request, response) => {
 				throw new Error('Order not found');
 			}
 
-			if (order.status !== 'pending') {
-				throw new Error(`Cannot cancel order with status: ${order.status}`);
-			}
+// Sin restricciones de estado
 
 			const updatedOrder = await Order.findByIdAndUpdate(
 				id,
 				{ status: 'canceled' },
+				{ new: true }
+			).session(session);
+
+			return response.json({
+				ok: true,
+				order: updatedOrder,
+			});
+		});
+	} catch (error) {
+		responseError(response, error);
+	} finally {
+		session.endSession();
+	}
+};
+
+export const pendingOrder = async (request, response) => {
+	const session = await mongoose.startSession();
+
+	try {
+		await session.withTransaction(async () => {
+			const { id } = request.params;
+
+			const order = await Order.findById(id).session(session);
+			if (!order) {
+				throw new Error('Order not found');
+			}
+
+// Sin restricciones de estado
+
+			const updatedOrder = await Order.findByIdAndUpdate(
+				id,
+				{ status: 'pending' },
 				{ new: true }
 			).session(session);
 

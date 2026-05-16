@@ -188,4 +188,3 @@ export const revalidateJWT = async (request, response) => {
 		responseError(response, error);
 	}
 };
-
