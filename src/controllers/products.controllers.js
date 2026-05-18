@@ -72,12 +72,21 @@ export const createProduct = async (request, response) => {
 
 		const [createdProduct] = await Product.create([productData], { session });
 
+		const finalProduct = await Product.findById(createdProduct._id)
+			.populate('category', 'name')
+			.session(session);
+
 		await session.commitTransaction();
 		session.endSession();
 
+		const productResponse = {
+			...finalProduct.toObject(),
+			category: finalProduct.category?.name || null
+		};
+
 		return response.json({
 			ok: true,
-			product: createdProduct,
+			product: productResponse,
 		});
 	} catch (error) {
 		await session.abortTransaction();
