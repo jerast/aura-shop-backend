@@ -43,7 +43,8 @@ export const createOrder = async (request, response) => {
 				date: new Date()
 			};
 
-			const [createdOrder] = await Order.create([orderData]).session(session);
+			const createdOrders = await Order.create([orderData], { session });
+		const createdOrder = createdOrders[0];
 
 			return response.json({
 				ok: true,
@@ -69,14 +70,11 @@ export const confirmOrder = async (request, response) => {
 				throw new Error('Order not found');
 			}
 
-// Sin restricciones de estado
-
 			for (const item of order.list) {
-				const product = await Product.findById(item.product).session(session);
-				
-				if (!product) {
-					throw new Error(`Product not found: ${item.product}`);
-				}
+				await Product.findByIdAndUpdate(
+					item.product,
+					{ $inc: { stock: -item.count } }
+				).session(session);
 			}
 
 			const updatedOrder = await Order.findByIdAndUpdate(
@@ -84,13 +82,6 @@ export const confirmOrder = async (request, response) => {
 				{ status: 'ready' },
 				{ new: true }
 			).session(session);
-
-			for (const item of order.list) {
-				await Product.findByIdAndUpdate(
-					item.product,
-					{ $inc: { stock: -item.count } }
-				).session(session);
-			}
 
 			return response.json({
 				ok: true,
