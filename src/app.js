@@ -15,21 +15,16 @@ const allowedOrigins = [
   "https://aura-belleza.shop",
   "https://www.aura-belleza.shop",
   "https://admin.aura-belleza.shop",
-  "http://localhost:5173",
-  "http://localhost:5174",
+  // "http://localhost:5173",
+  // "http://localhost:5174",
 ];
 
-app.use(cors());
-// app.use(cors({
-//   origin: function (origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-//   credentials: true
-// }));
+app.use(cors({
+  origin: (origin, callback) => (!origin || allowedOrigins.includes(origin)) 
+    ? callback(null, true) 
+    : callback(new Error("Not allowed by CORS")),
+  credentials: true,
+}));
 
 app.use(fileUpload({
 	useTempFiles: true,
